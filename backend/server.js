@@ -8,6 +8,7 @@ const categoryRoutes = require("./routes/categoryRoutes");
 const supplierRoutes = require("./routes/supplierRoutes");
 const purchaseRoutes = require("./routes/purchaseRoutes");
 const inventoryRoutes = require("./routes/inventoryRoutes");
+const customerRoutes = require("./routes/customerRoutes");
 
 dotenv.config();
 
@@ -28,8 +29,8 @@ app.use("/api/products", productRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/suppliers", supplierRoutes);
 app.use("/api/purchases", purchaseRoutes);
-app.use("/api/inventory", inventoryRoutes);
-
+app.use("/api/inventory", inventoryRoutes); 
+app.use("/api/customers", customerRoutes);
 
 // ROOT API
 app.get("/", (req, res) => {

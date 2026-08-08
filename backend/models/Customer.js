@@ -1,36 +1,54 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const customerSchema = new mongoose.Schema(
-  {
-    name: {
-      type: String,
-      required: [true, 'Please add a customer name'],
-      trim: true
+    {
+        name: {
+            type: String,
+            required: [true, "Customer name is required"],
+            trim: true
+        },
+
+        email: {
+            type: String,
+            lowercase: true,
+            trim: true
+        },
+
+        phone: {
+            type: String,
+            required: [true, "Customer phone number is required"],
+            trim: true
+        },
+
+        address: {
+            type: String,
+            default: "",
+            trim: true
+        },
+
+        city: {
+            type: String,
+            default: "",
+            trim: true
+        },
+
+        state: {
+            type: String,
+            default: "",
+            trim: true
+        },
+
+        status: {
+            type: String,
+            enum: ["ACTIVE", "INACTIVE"],
+            default: "ACTIVE"
+        }
     },
-    email: {
-      type: String,
-      required: [true, 'Please add an email'],
-      trim: true,
-      lowercase: true
-    },
-    phone: {
-      type: String,
-      required: [true, 'Please add a phone number'],
-      trim: true
-    },
-    address: {
-      type: String,
-      trim: true
-    },
-    status: {
-      type: String,
-      enum: ['ACTIVE', 'INACTIVE'],
-      default: 'ACTIVE'
+    {
+        timestamps: true
     }
-  },
-  {
-    timestamps: true
-  }
 );
 
-module.exports = mongoose.model('Customer', customerSchema);
+const Customer = mongoose.model("Customer", customerSchema);
+
+module.exports = Customer;

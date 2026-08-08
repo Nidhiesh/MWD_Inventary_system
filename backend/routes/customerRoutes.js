@@ -1,26 +1,23 @@
-const express = require('express');
-const router = express.Router();
+const express = require("express");
+
 const {
-  createCustomer,
-  getCustomers,
-  getCustomerById,
-  updateCustomer,
-  deleteCustomer
-} = require('../controllers/customerController');
-const { protect } = require('../middleware/authMiddleware');
-const { authorize } = require('../middleware/roleMiddleware');
+    createCustomer,
+    getCustomers,
+    getCustomerById,
+    updateCustomer,
+    deleteCustomer
+} = require("../controllers/customerController");
 
-router.use(protect);
+const router = express.Router();
 
-router
-  .route('/')
-  .get(authorize('ADMIN', 'MANAGER', 'STAFF'), getCustomers)
-  .post(authorize('ADMIN', 'MANAGER', 'STAFF'), createCustomer);
+router.post("/", createCustomer);
 
-router
-  .route('/:id')
-  .get(authorize('ADMIN', 'MANAGER', 'STAFF'), getCustomerById)
-  .put(authorize('ADMIN', 'MANAGER', 'STAFF'), updateCustomer)
-  .delete(authorize('ADMIN', 'MANAGER'), deleteCustomer);
+router.get("/", getCustomers);
+
+router.get("/:id", getCustomerById);
+
+router.put("/:id", updateCustomer);
+
+router.delete("/:id", deleteCustomer);
 
 module.exports = router;
