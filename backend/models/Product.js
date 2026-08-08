@@ -41,23 +41,24 @@ const productSchema = new mongoose.Schema(
         },
 
         quantity: {
-            type: Number,
-            default: 0,
-            min: [0, "Quantity cannot be negative"]
-        },
+    type: Number,
+    required: true,
+    min: 0,
+    default: 0
+},
 
-        minimumStock: {
-            type: Number,
-            default: 10,
-            min: [0, "Minimum stock cannot be negative"]
-        },
+minimumStock: {
+    type: Number,
+    required: true,
+    min: 0,
+    default: 10
+},
 
-        maximumStock: {
-            type: Number,
-            default: 100,
-            min: [0, "Maximum stock cannot be negative"]
-        },
-
+maximumStock: {
+    type: Number,
+    min: 0,
+    default: 100
+},
         warehouse: {
             type: String,
             default: "Main Warehouse",
