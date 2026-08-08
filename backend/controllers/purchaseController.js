@@ -1,5 +1,6 @@
 const Purchase = require("../models/Purchase");
 const Product = require("../models/Product");
+const InventoryTransaction = require("../models/InventoryTransaction");
 
 // ==========================================
 // CREATE PURCHASE
@@ -146,11 +147,34 @@ const receivePurchase = async (req, res) => {
                 });
             }
 
-            product.quantity =
-                Number(product.quantity || 0) +
-                Number(item.quantity);
+            const previousQuantity =
+    Number(product.quantity || 0);
 
-            await product.save();
+const newQuantity =
+    previousQuantity +
+    Number(item.quantity);
+
+product.quantity = newQuantity;
+
+await product.save();
+
+await InventoryTransaction.create({
+    product: product._id,
+
+    type: "PURCHASE",
+
+    quantity: Number(item.quantity),
+
+    previousQuantity,
+
+    newQuantity,
+
+    referenceType: "PURCHASE",
+
+    referenceId: purchase._id,
+
+    reason: `Stock received from purchase ${purchase.purchaseNumber}`
+});
         }
 
         // Change purchase status

@@ -1,46 +1,72 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const inventoryTransactionSchema = new mongoose.Schema(
-  {
-    productId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Product',
-      required: true
+    {
+        product: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Product",
+            required: [true, "Product is required"]
+        },
+
+        type: {
+            type: String,
+            enum: [
+                "PURCHASE",
+                "SALE",
+                "ADJUSTMENT",
+                "RETURN_IN",
+                "RETURN_OUT",
+                "DAMAGE"
+            ],
+            required: [true, "Transaction type is required"]
+        },
+
+        quantity: {
+            type: Number,
+            required: [true, "Quantity is required"]
+        },
+
+        previousQuantity: {
+            type: Number,
+            required: true
+        },
+
+        newQuantity: {
+            type: Number,
+            required: true
+        },
+
+        referenceType: {
+            type: String,
+            enum: [
+                "PURCHASE",
+                "SALE",
+                "MANUAL",
+                "DAMAGE"
+            ],
+            default: "MANUAL"
+        },
+
+        referenceId: {
+            type: mongoose.Schema.Types.ObjectId,
+            default: null
+        },
+
+        reason: {
+            type: String,
+            default: "",
+            trim: true
+        }
     },
-    type: {
-      type: String,
-      enum: ['PURCHASE', 'SALE', 'RETURN', 'ADJUSTMENT', 'TRANSFER'],
-      required: true
-    },
-    quantity: {
-      type: Number,
-      required: true
-    },
-    previousStock: {
-      type: Number,
-      required: true
-    },
-    newStock: {
-      type: Number,
-      required: true
-    },
-    referenceId: {
-      type: String
-    },
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: true
-    },
-    notes: {
-      type: String,
-      trim: true
-    },
-    createdAt: {
-      type: Date,
-      default: Date.now
+    {
+        timestamps: true
     }
-  }
 );
 
-module.exports = mongoose.model('InventoryTransaction', inventoryTransactionSchema);
+const InventoryTransaction =
+    mongoose.model(
+        "InventoryTransaction",
+        inventoryTransactionSchema
+    );
+
+module.exports = InventoryTransaction;

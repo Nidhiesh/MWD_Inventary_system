@@ -1,19 +1,25 @@
-const express = require('express');
-const router = express.Router();
+const express = require("express");
+
 const {
-  getStockLevels,
-  getTransactions,
-  getLowStockProducts,
-  adjustStock
-} = require('../controllers/inventoryController');
-const { protect } = require('../middleware/authMiddleware');
-const { authorize } = require('../middleware/roleMiddleware');
+    getTransactions,
+    getProductTransactions
+} = require("../controllers/inventoryController");
 
-router.use(protect);
+const router = express.Router();
 
-router.get('/stock', authorize('ADMIN', 'MANAGER', 'STAFF'), getStockLevels);
-router.get('/transactions', authorize('ADMIN', 'MANAGER', 'STAFF'), getTransactions);
-router.get('/low-stock', authorize('ADMIN', 'MANAGER', 'STAFF'), getLowStockProducts);
-router.post('/adjust', authorize('ADMIN', 'MANAGER'), adjustStock);
+
+// ALL TRANSACTIONS
+router.get(
+    "/transactions",
+    getTransactions
+);
+
+
+// PRODUCT HISTORY
+router.get(
+    "/transactions/product/:id",
+    getProductTransactions
+);
+
 
 module.exports = router;
