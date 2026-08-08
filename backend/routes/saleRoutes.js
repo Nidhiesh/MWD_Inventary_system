@@ -1,22 +1,24 @@
-const express = require('express');
-const router = express.Router();
+const express = require("express");
+
 const {
-  createSale,
-  getSales,
-  getSaleById
-} = require('../controllers/saleController');
-const { protect } = require('../middleware/authMiddleware');
-const { authorize } = require('../middleware/roleMiddleware');
+    createSale,
+    getSales,
+    getSaleById
+} = require("../controllers/saleController");
 
-router.use(protect);
+const router = express.Router();
 
-router
-  .route('/')
-  .get(authorize('ADMIN', 'MANAGER', 'STAFF'), getSales)
-  .post(authorize('ADMIN', 'MANAGER', 'STAFF'), createSale);
 
-router
-  .route('/:id')
-  .get(authorize('ADMIN', 'MANAGER', 'STAFF'), getSaleById);
+// CREATE SALE
+router.post("/", createSale);
+
+
+// GET ALL SALES
+router.get("/", getSales);
+
+
+// GET SALE BY ID
+router.get("/:id", getSaleById);
+
 
 module.exports = router;
