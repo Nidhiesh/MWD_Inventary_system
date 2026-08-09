@@ -1,5 +1,8 @@
 const express = require("express");
 
+const { protect } = require("../middleware/authMiddleware");
+const { authorize } = require("../middleware/roleMiddleware");
+
 const {
     createCustomer,
     getCustomers,
@@ -10,14 +13,48 @@ const {
 
 const router = express.Router();
 
-router.post("/", createCustomer);
 
-router.get("/", getCustomers);
+// CREATE CUSTOMER
+router.post(
+    "/",
+    protect,
+    authorize("ADMIN", "STAFF"),
+    createCustomer
+);
 
-router.get("/:id", getCustomerById);
 
-router.put("/:id", updateCustomer);
+// GET ALL CUSTOMERS
+router.get(
+    "/",
+    protect,
+    getCustomers
+);
 
-router.delete("/:id", deleteCustomer);
+
+// GET CUSTOMER BY ID
+router.get(
+    "/:id",
+    protect,
+    getCustomerById
+);
+
+
+// UPDATE CUSTOMER
+router.put(
+    "/:id",
+    protect,
+    authorize("ADMIN", "STAFF"),
+    updateCustomer
+);
+
+
+// DELETE / DEACTIVATE CUSTOMER
+router.delete(
+    "/:id",
+    protect,
+    authorize("ADMIN"),
+    deleteCustomer
+);
+
 
 module.exports = router;

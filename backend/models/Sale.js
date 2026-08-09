@@ -27,20 +27,13 @@ const saleItemSchema = new mongoose.Schema(
         }
     },
     {
-        _id: true
+        _id: false
     }
 );
 
 
 const saleSchema = new mongoose.Schema(
     {
-        saleNumber: {
-            type: String,
-            required: [true, "Sale number is required"],
-            unique: true,
-            trim: true
-        },
-
         customer: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Customer",
@@ -49,27 +42,13 @@ const saleSchema = new mongoose.Schema(
 
         items: {
             type: [saleItemSchema],
-            required: true,
-
+            required: [true, "Sale items are required"],
             validate: {
                 validator: function (items) {
                     return items.length > 0;
                 },
-
                 message: "Sale must contain at least one item"
             }
-        },
-
-        subtotal: {
-            type: Number,
-            required: true,
-            min: 0
-        },
-
-        tax: {
-            type: Number,
-            default: 0,
-            min: 0
         },
 
         grandTotal: {
@@ -78,24 +57,15 @@ const saleSchema = new mongoose.Schema(
             min: 0
         },
 
-        status: {
-            type: String,
-            enum: [
-                "COMPLETED",
-                "CANCELLED"
-            ],
-            default: "COMPLETED"
-        },
-
         saleDate: {
             type: Date,
             default: Date.now
         },
 
-        notes: {
+        status: {
             type: String,
-            default: "",
-            trim: true
+            enum: ["COMPLETED", "CANCELLED"],
+            default: "COMPLETED"
         }
     },
     {
@@ -104,6 +74,4 @@ const saleSchema = new mongoose.Schema(
 );
 
 
-const Sale = mongoose.model("Sale", saleSchema);
-
-module.exports = Sale;
+module.exports = mongoose.model("Sale", saleSchema);

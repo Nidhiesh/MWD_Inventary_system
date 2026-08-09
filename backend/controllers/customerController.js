@@ -1,8 +1,12 @@
 const Customer = require("../models/Customer");
 
+
+// ==========================================
 // CREATE CUSTOMER
+// ==========================================
 const createCustomer = async (req, res) => {
     try {
+
         const customer = await Customer.create(req.body);
 
         res.status(201).json({
@@ -12,17 +16,22 @@ const createCustomer = async (req, res) => {
         });
 
     } catch (error) {
+
         res.status(500).json({
             success: false,
             message: error.message
         });
+
     }
 };
 
 
+// ==========================================
 // GET ALL CUSTOMERS
+// ==========================================
 const getCustomers = async (req, res) => {
     try {
+
         const customers = await Customer.find()
             .sort({ createdAt: -1 });
 
@@ -33,19 +42,23 @@ const getCustomers = async (req, res) => {
         });
 
     } catch (error) {
+
         res.status(500).json({
             success: false,
             message: error.message
         });
+
     }
 };
 
 
+// ==========================================
 // GET CUSTOMER BY ID
+// ==========================================
 const getCustomerById = async (req, res) => {
     try {
-        const customer =
-            await Customer.findById(req.params.id);
+
+        const customer = await Customer.findById(req.params.id);
 
         if (!customer) {
             return res.status(404).json({
@@ -60,26 +73,30 @@ const getCustomerById = async (req, res) => {
         });
 
     } catch (error) {
+
         res.status(500).json({
             success: false,
             message: error.message
         });
+
     }
 };
 
 
+// ==========================================
 // UPDATE CUSTOMER
+// ==========================================
 const updateCustomer = async (req, res) => {
     try {
-        const customer =
-            await Customer.findByIdAndUpdate(
-                req.params.id,
-                req.body,
-                {
-                    new: true,
-                    runValidators: true
-                }
-            );
+
+        const customer = await Customer.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            {
+                new: true,
+                runValidators: true
+            }
+        );
 
         if (!customer) {
             return res.status(404).json({
@@ -95,26 +112,32 @@ const updateCustomer = async (req, res) => {
         });
 
     } catch (error) {
+
         res.status(500).json({
             success: false,
             message: error.message
         });
+
     }
 };
 
 
-// DEACTIVATE CUSTOMER
+// ==========================================
+// SOFT DELETE CUSTOMER
+// ==========================================
 const deleteCustomer = async (req, res) => {
     try {
-        const customer =
-            await Customer.findByIdAndUpdate(
-                req.params.id,
-                { status: "INACTIVE" },
-                {
-                    new: true,
-                    runValidators: true
-                }
-            );
+
+        const customer = await Customer.findByIdAndUpdate(
+            req.params.id,
+            {
+                status: "INACTIVE"
+            },
+            {
+                new: true,
+                runValidators: true
+            }
+        );
 
         if (!customer) {
             return res.status(404).json({
@@ -130,10 +153,12 @@ const deleteCustomer = async (req, res) => {
         });
 
     } catch (error) {
+
         res.status(500).json({
             success: false,
             message: error.message
         });
+
     }
 };
 

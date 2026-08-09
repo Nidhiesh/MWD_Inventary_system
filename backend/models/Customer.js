@@ -8,34 +8,23 @@ const customerSchema = new mongoose.Schema(
             trim: true
         },
 
-        email: {
+        phone: {
             type: String,
-            lowercase: true,
+            required: [true, "Customer phone is required"],
             trim: true
         },
 
-        phone: {
+        email: {
             type: String,
-            required: [true, "Customer phone number is required"],
-            trim: true
+            trim: true,
+            lowercase: true,
+            default: ""
         },
 
         address: {
             type: String,
-            default: "",
-            trim: true
-        },
-
-        city: {
-            type: String,
-            default: "",
-            trim: true
-        },
-
-        state: {
-            type: String,
-            default: "",
-            trim: true
+            trim: true,
+            default: ""
         },
 
         status: {
@@ -49,6 +38,4 @@ const customerSchema = new mongoose.Schema(
     }
 );
 
-const Customer = mongoose.model("Customer", customerSchema);
-
-module.exports = Customer;
+module.exports = mongoose.model("Customer", customerSchema);

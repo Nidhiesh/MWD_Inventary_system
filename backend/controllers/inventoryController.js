@@ -1,23 +1,16 @@
-const InventoryTransaction =
-    require("../models/InventoryTransaction");
+const InventoryTransaction = require("../models/InventoryTransaction");
 
 
 // ==========================================
 // GET ALL INVENTORY TRANSACTIONS
-// GET /api/inventory/transactions
 // ==========================================
-const getTransactions = async (req, res) => {
+const getInventoryTransactions = async (req, res) => {
     try {
 
         const transactions =
             await InventoryTransaction.find()
-                .populate(
-                    "product",
-                    "name sku quantity"
-                )
-                .sort({
-                    createdAt: -1
-                });
+                .populate("product", "name sku quantity")
+                .sort({ createdAt: -1 });
 
         res.status(200).json({
             success: true,
@@ -37,23 +30,17 @@ const getTransactions = async (req, res) => {
 
 
 // ==========================================
-// GET PRODUCT TRANSACTION HISTORY
-// GET /api/inventory/transactions/product/:id
+// GET TRANSACTIONS FOR ONE PRODUCT
 // ==========================================
 const getProductTransactions = async (req, res) => {
     try {
 
         const transactions =
             await InventoryTransaction.find({
-                product: req.params.id
+                product: req.params.productId
             })
-            .populate(
-                "product",
-                "name sku quantity"
-            )
-            .sort({
-                createdAt: -1
-            });
+            .populate("product", "name sku quantity")
+            .sort({ createdAt: -1 });
 
         res.status(200).json({
             success: true,
@@ -73,6 +60,6 @@ const getProductTransactions = async (req, res) => {
 
 
 module.exports = {
-    getTransactions,
+    getInventoryTransactions,
     getProductTransactions
 };

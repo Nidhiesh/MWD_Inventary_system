@@ -10,49 +10,39 @@ const inventoryTransactionSchema = new mongoose.Schema(
 
         type: {
             type: String,
-            enum: [
-                "PURCHASE",
-                "SALE",
-                "ADJUSTMENT",
-                "RETURN_IN",
-                "RETURN_OUT",
-                "DAMAGE"
-            ],
+            enum: ["IN", "OUT", "ADJUSTMENT"],
             required: [true, "Transaction type is required"]
         },
 
         quantity: {
             type: Number,
-            required: [true, "Quantity is required"]
+            required: [true, "Quantity is required"],
+            min: [1, "Quantity must be at least 1"]
         },
 
         previousQuantity: {
             type: Number,
-            required: true
+            required: true,
+            min: 0
         },
 
         newQuantity: {
             type: Number,
-            required: true
+            required: true,
+            min: 0
         },
 
         referenceType: {
             type: String,
-            enum: [
-                "PURCHASE",
-                "SALE",
-                "MANUAL",
-                "DAMAGE"
-            ],
-            default: "MANUAL"
+            enum: ["PURCHASE", "SALE", "MANUAL"],
+            required: true
         },
 
         referenceId: {
-            type: mongoose.Schema.Types.ObjectId,
-            default: null
+            type: mongoose.Schema.Types.ObjectId
         },
 
-        reason: {
+        note: {
             type: String,
             default: "",
             trim: true
@@ -63,10 +53,7 @@ const inventoryTransactionSchema = new mongoose.Schema(
     }
 );
 
-const InventoryTransaction =
-    mongoose.model(
-        "InventoryTransaction",
-        inventoryTransactionSchema
-    );
-
-module.exports = InventoryTransaction;
+module.exports = mongoose.model(
+    "InventoryTransaction",
+    inventoryTransactionSchema
+);

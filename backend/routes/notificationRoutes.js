@@ -1,13 +1,64 @@
-const express = require('express');
+const express = require("express");
+
+const { protect } = require("../middleware/authMiddleware");
+const { authorize } = require("../middleware/roleMiddleware");
+
+const {
+    getNotifications,
+    getUnreadNotifications,
+    markNotificationAsRead,
+    markAllNotificationsAsRead,
+    deleteNotification
+} = require("../controllers/notificationController");
+
 const router = express.Router();
-const { getNotifications, markNotificationRead } = require('../controllers/notificationController');
-const { protect } = require('../middleware/authMiddleware');
-const { authorize } = require('../middleware/roleMiddleware');
 
-router.use(protect);
-router.use(authorize('ADMIN', 'MANAGER')); // restricted as per role expectations
 
-router.get('/', getNotifications);
-router.put('/:id/read', markNotificationRead);
+// GET ALL
+router.get(
+    "/",
+    protect,
+    getNotifications
+);
 
-module.exports = router;
+
+// GET UNREAD
+router.get(
+    "/unread",
+    protect,
+    getUnreadNotifications
+);
+
+
+// MARK ALL AS READ
+router.put(
+    "/read-all",
+    protect,
+    markAllNotificationsAsRead
+);
+
+
+// MARK ONE AS READ
+router.put(
+    "/:id/read",
+    protect,
+    markNotificationAsRead
+);
+
+
+// DELETE
+router.delete(
+    "/:id",
+    protect,
+    authorize("ADMIN"),
+    deleteNotification
+);
+
+
+module.exports = {
+    getNotifications,
+    getUnreadNotifications,
+    markNotificationAsRead,
+    markAllNotificationsAsRead,
+    deleteNotification
+};

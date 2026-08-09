@@ -1,17 +1,89 @@
 const Purchase = require("../models/Purchase");
-
+const Product = require("../models/Product");
+const Notification = require("../models/Notification");
 
 // ==========================================
 // CREATE PURCHASE
 // ==========================================
 const createPurchase = async (req, res) => {
     try {
+        const { supplier, items, grandTotal, status } = req.body;
 
-        const purchase = await Purchase.create(req.body);
+        // Validate items
+        if (!items || items.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Purchase must contain at least one item"
+            });
+        }
+
+        // Create purchase
+        const purchase = await Purchase.create({
+            supplier,
+            items,
+            grandTotal,
+            status: status || "RECEIVED"
+        });
+
+        // Update product stock only when purchase is RECEIVED
+        if (purchase.status === "RECEIVED") {
+
+            for (const item of purchase.items) {
+
+                const product = await Product.findById(item.product);
+
+                if (!product) {
+                    continue;
+                }
+
+                // Increase stock
+                const previousQuantity = product.quantity;
+product.quantity += item.quantity;
+
+    await product.save();
+
+    // Record inventory transaction
+product.quantity += item.quantity;
+
+await product.save();
+
+await InventoryTransaction.create({
+    product: product._id,
+    type: "IN",
+    quantity: item.quantity,
+    previousQuantity: previousQuantity,
+    newQuantity: product.quantity,
+    referenceType: "PURCHASE",
+    referenceId: purchase._id,
+    note: "Stock received from purchase"
+});
+
+                // LOW STOCK notification
+                if (
+                    product.quantity > 0 &&
+                    product.quantity <= product.minimumStock
+                ) {
+                    await Notification.create({
+                        type: "LOW_STOCK",
+                        message: `${product.name} is low in stock. Current quantity: ${product.quantity}`,
+                        productId: product._id
+                    });
+                }
+
+                // OUT OF STOCK notification
+                if (product.quantity === 0) {
+                    await Notification.create({
+                        type: "OUT_OF_STOCK",
+                        message: `${product.name} is out of stock.`,
+                        productId: product._id
+                    });
+                }
+            }
+        }
 
         res.status(201).json({
             success: true,
-            message: "Purchase created successfully",
+            message: "Purchase created and stock updated successfully",
             data: purchase
         });
 

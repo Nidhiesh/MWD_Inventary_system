@@ -1,23 +1,27 @@
 const express = require("express");
 
+const { protect } = require("../middleware/authMiddleware");
+
 const {
-    getTransactions,
+    getInventoryTransactions,
     getProductTransactions
 } = require("../controllers/inventoryController");
 
 const router = express.Router();
 
 
-// ALL TRANSACTIONS
+// GET ALL INVENTORY TRANSACTIONS
 router.get(
-    "/transactions",
-    getTransactions
+    "/",
+    protect,
+    getInventoryTransactions
 );
 
 
-// PRODUCT HISTORY
+// GET PRODUCT TRANSACTION HISTORY
 router.get(
-    "/transactions/product/:id",
+    "/product/:productId",
+    protect,
     getProductTransactions
 );
 

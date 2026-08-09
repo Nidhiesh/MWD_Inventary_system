@@ -1,22 +1,48 @@
-const express = require('express');
-const router = express.Router();
+const express = require("express");
+
+const { protect } = require("../middleware/authMiddleware");
+
 const {
-  getInventoryReport,
-  getSalesReport,
-  getPurchasesReport,
-  getLowStockReport,
-  getExpiryReport
-} = require('../controllers/reportController');
-const { protect } = require('../middleware/authMiddleware');
-const { authorize } = require('../middleware/roleMiddleware');
+    getSalesReport,
+    getPurchaseReport,
+    getInventoryReport
+} = require("../controllers/reportController");
 
-router.use(protect);
-router.use(authorize('ADMIN', 'MANAGER'));
 
-router.get('/inventory', getInventoryReport);
-router.get('/sales', getSalesReport);
-router.get('/purchases', getPurchasesReport);
-router.get('/low-stock', getLowStockReport);
-router.get('/expiry', getExpiryReport);
+const router = express.Router();
+
+
+// ==========================================
+// SALES REPORT
+// ==========================================
+
+router.get(
+    "/sales",
+    protect,
+    getSalesReport
+);
+
+
+// ==========================================
+// PURCHASE REPORT
+// ==========================================
+
+router.get(
+    "/purchases",
+    protect,
+    getPurchaseReport
+);
+
+
+// ==========================================
+// INVENTORY REPORT
+// ==========================================
+
+router.get(
+    "/inventory",
+    protect,
+    getInventoryReport
+);
+
 
 module.exports = router;

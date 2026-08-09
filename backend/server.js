@@ -24,7 +24,8 @@ const saleRoutes = require("./routes/saleRoutes");
 const alertRoutes = require("./routes/alertRoutes");
 const dashboardRoutes = require("./routes/dashboardRoutes");
 const authRoutes = require("./routes/authRoutes");
-
+const reportRoutes = require("./routes/reportRoutes");
+const analyticsRoutes = require("./routes/analyticsRoutes");
 
 // ==========================================
 // API ROUTES
@@ -39,7 +40,8 @@ app.use("/api/sales", saleRoutes);
 app.use("/api/alerts", alertRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/auth", authRoutes);
-
+app.use("/api/reports", reportRoutes);
+app.use("/api/analytics", analyticsRoutes);
 
 // ==========================================
 // ROOT API TEST
