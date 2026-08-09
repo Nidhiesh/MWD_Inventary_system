@@ -3,44 +3,100 @@ const User = require("../models/User");
 
 
 // ==========================================
-// PROTECT
+// PROTECT ROUTES
 // ==========================================
 
 const protect = async (req, res, next) => {
 
     try {
 
-        const authHeader =
-            req.headers.authorization;
+        // ==========================================
+        // CHECK AUTHORIZATION HEADER
+        // ==========================================
 
+        const authHeader = req.headers.authorization;
 
         if (
             !authHeader ||
+            typeof authHeader !== "string" ||
             !authHeader.startsWith("Bearer ")
         ) {
 
             return res.status(401).json({
                 success: false,
-                message:
-                    "Not authorized. Please login."
+                message: "Not authorized. Please login."
             });
+
         }
 
 
-        const token =
-            authHeader.split(" ")[1];
+        // ==========================================
+        // EXTRACT TOKEN
+        // ==========================================
+
+        const token = authHeader.substring(7).trim();
+
+        if (!token) {
+
+            return res.status(401).json({
+                success: false,
+                message: "Not authorized. Please login."
+            });
+
+        }
 
 
-        const decoded =
-            jwt.verify(
-                token,
-                process.env.JWT_SECRET
+        // ==========================================
+        // CHECK JWT SECRET
+        // ==========================================
+
+        if (!process.env.JWT_SECRET) {
+
+            console.error(
+                "JWT_SECRET is not configured"
             );
 
+            return res.status(500).json({
+                success: false,
+                message: "Authentication configuration error"
+            });
 
-        const user =
-            await User.findById(decoded.id)
-                .select("-password");
+        }
+
+
+        // ==========================================
+        // VERIFY TOKEN
+        // ==========================================
+
+        const decoded = jwt.verify(
+            token,
+            process.env.JWT_SECRET
+        );
+
+
+        // ==========================================
+        // VALIDATE TOKEN PAYLOAD
+        // ==========================================
+
+        if (
+            !decoded ||
+            !decoded.id
+        ) {
+
+            return res.status(401).json({
+                success: false,
+                message: "Invalid authentication token"
+            });
+
+        }
+
+
+        // ==========================================
+        // FIND USER
+        // ==========================================
+
+        const user = await User.findById(decoded.id)
+            .select("-password");
 
 
         if (!user) {
@@ -49,31 +105,80 @@ const protect = async (req, res, next) => {
                 success: false,
                 message: "User not found"
             });
+
         }
 
 
-        if (!user.isActive) {
+        // ==========================================
+        // CHECK ACCOUNT STATUS
+        // ==========================================
+
+        if (user.isActive === false) {
 
             return res.status(403).json({
                 success: false,
                 message: "Account is disabled"
             });
+
         }
 
 
+        // ==========================================
+        // ATTACH USER TO REQUEST
+        // ==========================================
+
         req.user = user;
+
+
+        // ==========================================
+        // CONTINUE
+        // ==========================================
 
         next();
 
 
     } catch (error) {
 
+        // ==========================================
+        // JWT ERRORS
+        // ==========================================
+
+        if (error.name === "TokenExpiredError") {
+
+            return res.status(401).json({
+                success: false,
+                message: "Session expired. Please login again."
+            });
+
+        }
+
+
+        if (error.name === "JsonWebTokenError") {
+
+            return res.status(401).json({
+                success: false,
+                message: "Invalid authentication token"
+            });
+
+        }
+
+
+        // ==========================================
+        // OTHER ERRORS
+        // ==========================================
+
+        console.error(
+            "Authentication Error:",
+            error.message
+        );
+
         return res.status(401).json({
             success: false,
-            message:
-                "Invalid or expired token"
+            message: "Authentication failed"
         });
+
     }
+
 };
 
 
@@ -85,22 +190,42 @@ const authorize = (...roles) => {
 
     return (req, res, next) => {
 
+        // User must already be authenticated
+
+        if (!req.user) {
+
+            return res.status(401).json({
+                success: false,
+                message: "Not authorized. Please login."
+            });
+
+        }
+
+
+        // Check role
+
         if (
-            !req.user ||
             !roles.includes(req.user.role)
         ) {
 
             return res.status(403).json({
                 success: false,
-                message:
-                    "You do not have permission"
+                message: "You do not have permission"
             });
+
         }
 
+
         next();
+
     };
+
 };
 
+
+// ==========================================
+// EXPORT
+// ==========================================
 
 module.exports = {
     protect,
