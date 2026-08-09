@@ -1,56 +1,51 @@
 const express = require("express");
 
-const {
-    registerUser,
-    loginUser
-} = require("../controllers/authController");
-
-const { protect } = require("../middleware/authMiddleware");
-const { authorize } = require("../middleware/roleMiddleware");
-
 const router = express.Router();
 
+const {
+    login,
+    createStaff,
+    getStaff,
+    toggleStaffStatus
+} = require("../controllers/authController");
 
-// REGISTER
-router.post(
-    "/register",
-    registerUser
-);
+const {
+    protect,
+    authorize
+} = require("../middleware/authMiddleware");
 
 
 // LOGIN
 router.post(
     "/login",
-    loginUser
+    login
 );
 
 
-// TEST LOGIN
-router.get(
-    "/me",
+// ADMIN → CREATE STAFF
+router.post(
+    "/staff",
     protect,
-    (req, res) => {
-        res.status(200).json({
-            success: true,
-            message: "Authentication successful",
-            user: req.user
-        });
-    }
+    authorize("admin"),
+    createStaff
 );
 
 
-// TEST ADMIN
+// ADMIN → GET STAFF
 router.get(
-    "/admin-test",
+    "/staff",
     protect,
-    authorize("ADMIN"),
-    (req, res) => {
-        res.status(200).json({
-            success: true,
-            message: "Admin authorization successful",
-            user: req.user
-        });
-    }
+    authorize("admin"),
+    getStaff
+);
+
+
+// ADMIN → ENABLE/DISABLE STAFF
+router.patch(
+    "/staff/:id/status",
+    protect,
+    authorize("admin"),
+    toggleStaffStatus
 );
 
 

@@ -1,75 +1,108 @@
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
+
+// ==========================================
+// PROTECT
+// ==========================================
+
 const protect = async (req, res, next) => {
+
     try {
 
-        // Get Authorization header
-        const authHeader = req.headers.authorization;
+        const authHeader =
+            req.headers.authorization;
 
-        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+
+        if (
+            !authHeader ||
+            !authHeader.startsWith("Bearer ")
+        ) {
+
             return res.status(401).json({
                 success: false,
-                message: "Not authorized. Please login."
+                message:
+                    "Not authorized. Please login."
             });
         }
 
-        // Extract token
-        const token = authHeader.split(" ")[1];
 
-        // Verify token
-        const decoded = jwt.verify(
-            token,
-            process.env.JWT_SECRET
-        );
+        const token =
+            authHeader.split(" ")[1];
 
-        // Find user
-        const user = await User.findById(decoded.id)
-            .select("-password");
+
+        const decoded =
+            jwt.verify(
+                token,
+                process.env.JWT_SECRET
+            );
+
+
+        const user =
+            await User.findById(decoded.id)
+                .select("-password");
+
 
         if (!user) {
+
             return res.status(401).json({
                 success: false,
-                message: "User not found."
+                message: "User not found"
             });
         }
 
-        // Check account status
-        if (user.status !== "ACTIVE") {
+
+        if (!user.isActive) {
+
             return res.status(403).json({
                 success: false,
-                message: "User account is inactive."
+                message: "Account is disabled"
             });
         }
 
-        // Attach user to request
+
         req.user = user;
 
         next();
 
+
     } catch (error) {
 
-        if (error.name === "JsonWebTokenError") {
-            return res.status(401).json({
-                success: false,
-                message: "Invalid token."
-            });
-        }
-
-        if (error.name === "TokenExpiredError") {
-            return res.status(401).json({
-                success: false,
-                message: "Token has expired. Please login again."
-            });
-        }
-
-        return res.status(500).json({
+        return res.status(401).json({
             success: false,
-            message: error.message
+            message:
+                "Invalid or expired token"
         });
     }
 };
 
+
+// ==========================================
+// AUTHORIZE ROLE
+// ==========================================
+
+const authorize = (...roles) => {
+
+    return (req, res, next) => {
+
+        if (
+            !req.user ||
+            !roles.includes(req.user.role)
+        ) {
+
+            return res.status(403).json({
+                success: false,
+                message:
+                    "You do not have permission"
+            });
+        }
+
+        next();
+    };
+};
+
+
 module.exports = {
-    protect
+    protect,
+    authorize
 };

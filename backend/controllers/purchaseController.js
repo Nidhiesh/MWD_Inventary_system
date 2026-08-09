@@ -1,5 +1,6 @@
 const Purchase = require("../models/Purchase");
 const Product = require("../models/Product");
+const InventoryTransaction = require("../models/InventoryTransaction");
 const Notification = require("../models/Notification");
 
 // ==========================================
@@ -38,25 +39,20 @@ const createPurchase = async (req, res) => {
 
                 // Increase stock
                 const previousQuantity = product.quantity;
-product.quantity += item.quantity;
+                product.quantity += item.quantity;
+                await product.save();
 
-    await product.save();
-
-    // Record inventory transaction
-product.quantity += item.quantity;
-
-await product.save();
-
-await InventoryTransaction.create({
-    product: product._id,
-    type: "IN",
-    quantity: item.quantity,
-    previousQuantity: previousQuantity,
-    newQuantity: product.quantity,
-    referenceType: "PURCHASE",
-    referenceId: purchase._id,
-    note: "Stock received from purchase"
-});
+                // Record inventory transaction
+                await InventoryTransaction.create({
+                    product: product._id,
+                    type: "IN",
+                    quantity: item.quantity,
+                    previousQuantity: previousQuantity,
+                    newQuantity: product.quantity,
+                    referenceType: "PURCHASE",
+                    referenceId: purchase._id,
+                    note: "Stock received from purchase"
+                });
 
                 // LOW STOCK notification
                 if (

@@ -9,7 +9,10 @@ const authorize = (...allowedRoles) => {
             });
         }
 
-        if (!allowedRoles.includes(req.user.role)) {
+        const userRole = req.user.role ? req.user.role.toLowerCase() : "";
+        const allowedRolesLower = allowedRoles.map(role => role.toLowerCase());
+
+        if (!allowedRolesLower.includes(userRole)) {
             return res.status(403).json({
                 success: false,
                 message: "You do not have permission to perform this action."
