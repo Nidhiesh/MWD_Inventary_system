@@ -4,31 +4,79 @@ const router = express.Router();
 
 
 // ==========================================
-// CONTROLLER
+// CONTROLLERS
 // ==========================================
 
 const {
-    login
+    login,
+    createStaff,
+    getStaff,
+    toggleStaffStatus
 } = require("../controllers/authController");
 
 
 // ==========================================
-// SECURITY MIDDLEWARE
+// MIDDLEWARE
 // ==========================================
 
 const {
     authLimiter
 } = require("../middleware/securityMiddleware");
 
+const {
+    protect,
+    authorize
+} = require("../middleware/authMiddleware");
+
 
 // ==========================================
 // LOGIN
+// PUBLIC
 // ==========================================
 
 router.post(
     "/login",
     authLimiter,
     login
+);
+
+
+// ==========================================
+// CREATE STAFF
+// ADMIN ONLY
+// ==========================================
+
+router.post(
+    "/staff",
+    protect,
+    authorize("admin"),
+    createStaff
+);
+
+
+// ==========================================
+// GET STAFF
+// ADMIN ONLY
+// ==========================================
+
+router.get(
+    "/staff",
+    protect,
+    authorize("admin"),
+    getStaff
+);
+
+
+// ==========================================
+// ENABLE / DISABLE STAFF
+// ADMIN ONLY
+// ==========================================
+
+router.patch(
+    "/staff/:id/status",
+    protect,
+    authorize("admin"),
+    toggleStaffStatus
 );
 
 
