@@ -1,20 +1,17 @@
-const express = require('express');
-const router = express.Router();
+const express = require("express");
+
 const {
-  getDashboardSummary,
-  getSalesChartData,
-  getTopProducts,
-  getCategorySummary
-} = require('../controllers/dashboardController');
-const { protect } = require('../middleware/authMiddleware');
-const { authorize } = require('../middleware/roleMiddleware');
+    getDashboardSummary
+} = require("../controllers/dashboardController");
 
-router.use(protect);
-router.use(authorize('ADMIN', 'MANAGER', 'STAFF'));
+const router = express.Router();
 
-router.get('/', getDashboardSummary);
-router.get('/sales-chart', getSalesChartData);
-router.get('/top-products', getTopProducts);
-router.get('/category-summary', getCategorySummary);
+
+// DASHBOARD SUMMARY
+router.get(
+    "/",
+    getDashboardSummary
+);
+
 
 module.exports = router;

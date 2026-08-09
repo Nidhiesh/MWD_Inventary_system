@@ -1,205 +1,183 @@
-const Product = require('../models/Product');
-const Sale = require('../models/Sale');
-const Purchase = require('../models/Purchase');
-const Category = require('../models/Category');
+const Product = require("../models/Product");
+const Category = require("../models/Category");
+const Supplier = require("../models/Supplier");
+const Customer = require("../models/Customer");
+const Purchase = require("../models/Purchase");
+const Sale = require("../models/Sale");
 
-/**
- * @desc    Get dashboard metrics summary
- * @route   GET /api/dashboard
- * @access  Private (Admin, Manager, Staff)
- */
-const getDashboardSummary = async (req, res, next) => {
-  try {
-    // 1. Products and Stock calculations
-    const products = await Product.find({});
-    const totalProducts = products.length;
-    let totalStock = 0;
-    let stockValue = 0;
-    let lowStockProducts = 0;
-    let outOfStockProducts = 0;
 
-    products.forEach((prod) => {
-      totalStock += prod.quantity;
-      stockValue += prod.quantity * prod.purchasePrice;
+// ==========================================
+// GET DASHBOARD SUMMARY
+// GET /api/dashboard
+// ==========================================
+const getDashboardSummary = async (req, res) => {
+    try {
 
-      if (prod.quantity === 0) {
-        outOfStockProducts++;
-      } else if (prod.quantity <= prod.minimumStock) {
-        lowStockProducts++;
-      }
-    });
+        // ------------------------------------------
+        // BASIC COUNTS
+        // ------------------------------------------
 
-    // 2. Sales calculations
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+        const totalProducts =
+            await Product.countDocuments();
 
-    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+        const totalCategories =
+            await Category.countDocuments();
 
-    // Today sales
-    const salesTodayList = await Sale.find({
-      createdAt: { $gte: today }
-    });
-    const todaySales = salesTodayList.reduce((sum, s) => sum + s.totalAmount, 0);
+        const totalSuppliers =
+            await Supplier.countDocuments();
 
-    // Monthly sales
-    const salesMonthList = await Sale.find({
-      createdAt: { $gte: startOfMonth }
-    });
-    const monthlySales = salesMonthList.reduce((sum, s) => sum + s.totalAmount, 0);
+        const totalCustomers =
+            await Customer.countDocuments({
+                status: "ACTIVE"
+            });
 
-    // 3. Purchase calculation (total of RECEIVED purchase orders)
-    const receivedPurchases = await Purchase.find({ status: 'RECEIVED' });
-    const totalPurchases = receivedPurchases.reduce((sum, p) => sum + p.totalAmount, 0);
 
-    res.status(200).json({
-      success: true,
-      message: 'Dashboard metrics retrieved successfully',
-      data: {
-        totalProducts,
-        totalStock,
-        stockValue: Number(stockValue.toFixed(2)),
-        lowStockProducts,
-        outOfStockProducts,
-        todaySales: Number(todaySales.toFixed(2)),
-        monthlySales: Number(monthlySales.toFixed(2)),
-        totalPurchases: Number(totalPurchases.toFixed(2))
-      }
-    });
-  } catch (error) {
-    next(error);
-  }
+        // ------------------------------------------
+        // LOW STOCK
+        // ------------------------------------------
+
+        const lowStockProducts =
+            await Product.countDocuments({
+                $expr: {
+                    $lte: [
+                        "$quantity",
+                        "$minimumStock"
+                    ]
+                }
+            });
+
+
+        // ------------------------------------------
+        // OUT OF STOCK
+        // ------------------------------------------
+
+        const outOfStockProducts =
+            await Product.countDocuments({
+                quantity: 0
+            });
+
+
+        // ------------------------------------------
+        // TOTAL SALES
+        // ------------------------------------------
+
+        const salesResult =
+            await Sale.aggregate([
+                {
+                    $match: {
+                        status: "COMPLETED"
+                    }
+                },
+                {
+                    $group: {
+                        _id: null,
+                        totalSales: {
+                            $sum: "$grandTotal"
+                        },
+                        salesCount: {
+                            $sum: 1
+                        }
+                    }
+                }
+            ]);
+
+
+        // ------------------------------------------
+        // TOTAL PURCHASES
+        // ------------------------------------------
+
+        const purchaseResult =
+            await Purchase.aggregate([
+                {
+                    $match: {
+                        status: "RECEIVED"
+                    }
+                },
+                {
+                    $group: {
+                        _id: null,
+                        totalPurchases: {
+                            $sum: "$totalAmount"
+                        },
+                        purchaseCount: {
+                            $sum: 1
+                        }
+                    }
+                }
+            ]);
+
+
+        const totalSales =
+            salesResult.length > 0
+                ? salesResult[0].totalSales
+                : 0;
+
+        const salesCount =
+            salesResult.length > 0
+                ? salesResult[0].salesCount
+                : 0;
+
+
+        const totalPurchases =
+            purchaseResult.length > 0
+                ? purchaseResult[0].totalPurchases
+                : 0;
+
+        const purchaseCount =
+            purchaseResult.length > 0
+                ? purchaseResult[0].purchaseCount
+                : 0;
+
+
+        // ------------------------------------------
+        // RESPONSE
+        // ------------------------------------------
+
+        res.status(200).json({
+            success: true,
+
+            data: {
+                products: {
+                    total: totalProducts,
+                    lowStock: lowStockProducts,
+                    outOfStock: outOfStockProducts
+                },
+
+                categories: {
+                    total: totalCategories
+                },
+
+                suppliers: {
+                    total: totalSuppliers
+                },
+
+                customers: {
+                    total: totalCustomers
+                },
+
+                sales: {
+                    totalAmount: totalSales,
+                    count: salesCount
+                },
+
+                purchases: {
+                    totalAmount: totalPurchases,
+                    count: purchaseCount
+                }
+            }
+        });
+
+    } catch (error) {
+
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+
+    }
 };
 
-/**
- * @desc    Get sales history chart data (last 7 days daily summary)
- * @route   GET /api/dashboard/sales-chart
- * @access  Private (Admin, Manager, Staff)
- */
-const getSalesChartData = async (req, res, next) => {
-  try {
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-    sevenDaysAgo.setHours(0, 0, 0, 0);
-
-    const sales = await Sale.aggregate([
-      {
-        $match: {
-          createdAt: { $gte: sevenDaysAgo }
-        }
-      },
-      {
-        $group: {
-          _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
-          totalSales: { $sum: '$totalAmount' },
-          count: { $sum: 1 }
-        }
-      },
-      {
-        $sort: { _id: 1 }
-      }
-    ]);
-
-    res.status(200).json({
-      success: true,
-      message: 'Sales chart data retrieved successfully',
-      data: sales
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-/**
- * @desc    Get top selling products
- * @route   GET /api/dashboard/top-products
- * @access  Private (Admin, Manager, Staff)
- */
-const getTopProducts = async (req, res, next) => {
-  try {
-    const limit = parseInt(req.query.limit, 10) || 5;
-
-    const topSelling = await Sale.aggregate([
-      { $unwind: '$items' },
-      {
-        $group: {
-          _id: '$items.product',
-          totalQuantitySold: { $sum: '$items.quantity' },
-          totalRevenue: { $sum: '$items.subtotal' }
-        }
-      },
-      { $sort: { totalQuantitySold: -1 } },
-      { $limit: limit }
-    ]);
-
-    // Populate product details manually to maintain clean design
-    const populatedTopSelling = await Promise.all(
-      topSelling.map(async (item) => {
-        const prod = await Product.findById(item._id).select('name sku quantity sellingPrice').lean();
-        return {
-          product: prod || { name: 'Unknown Product', sku: 'N/A' },
-          totalQuantitySold: item.totalQuantitySold,
-          totalRevenue: Number(item.totalRevenue.toFixed(2))
-        };
-      })
-    );
-
-    res.status(200).json({
-      success: true,
-      message: 'Top selling products retrieved successfully',
-      data: populatedTopSelling
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-/**
- * @desc    Get category summary (product count and stock value per category)
- * @route   GET /api/dashboard/category-summary
- * @access  Private (Admin, Manager, Staff)
- */
-const getCategorySummary = async (req, res, next) => {
-  try {
-    const summary = await Product.aggregate([
-      {
-        $group: {
-          _id: '$category',
-          productCount: { $sum: 1 },
-          totalStock: { $sum: '$quantity' },
-          stockValue: { $sum: { $multiply: ['$quantity', '$purchasePrice'] } }
-        }
-      }
-    ]);
-
-    const populatedSummary = await Promise.all(
-      summary.map(async (item) => {
-        let catName = 'Uncategorized';
-        if (item._id) {
-          const cat = await Category.findById(item._id).select('name').lean();
-          if (cat) catName = cat.name;
-        }
-        return {
-          categoryName: catName,
-          productCount: item.productCount,
-          totalStock: item.totalStock,
-          stockValue: Number(item.stockValue.toFixed(2))
-        };
-      })
-    );
-
-    res.status(200).json({
-      success: true,
-      message: 'Category summary retrieved successfully',
-      data: populatedSummary
-    });
-  } catch (error) {
-    next(error);
-  }
-};
 
 module.exports = {
-  getDashboardSummary,
-  getSalesChartData,
-  getTopProducts,
-  getCategorySummary
+    getDashboardSummary
 };

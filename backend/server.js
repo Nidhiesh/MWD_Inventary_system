@@ -1,8 +1,12 @@
 const express = require("express");
-const dotenv = require("dotenv");
-const cors = require("cors");
+const mongoose = require("mongoose");
+require("dotenv").config();
 
-const connectDB = require("./config/db");
+const app = express();
+
+app.use(express.json());
+
+// Routes
 const productRoutes = require("./routes/productRoutes");
 const categoryRoutes = require("./routes/categoryRoutes");
 const supplierRoutes = require("./routes/supplierRoutes");
@@ -11,43 +15,30 @@ const inventoryRoutes = require("./routes/inventoryRoutes");
 const customerRoutes = require("./routes/customerRoutes");
 const saleRoutes = require("./routes/saleRoutes");
 const alertRoutes = require("./routes/alertRoutes");
+const dashboardRoutes = require("./routes/dashboardRoutes");
 
-dotenv.config();
-
-const app = express();
-
-
-// DATABASE
-connectDB();
-
-
-// MIDDLEWARE
-app.use(cors());
-app.use(express.json());
-
-
-// ROUTES
 app.use("/api/products", productRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/suppliers", supplierRoutes);
 app.use("/api/purchases", purchaseRoutes);
-app.use("/api/inventory", inventoryRoutes); 
+app.use("/api/inventory", inventoryRoutes);
 app.use("/api/customers", customerRoutes);
-app.use( "/api/sales", saleRoutes );
-app.use( "/api/alerts", alertRoutes );
+app.use("/api/sales", saleRoutes);
+app.use("/api/alerts", alertRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
-// ROOT API
-app.get("/", (req, res) => {
-    res.json({
-        success: true,
-        message: "SmartStock Backend API is running"
-    });
-});
-
-
-// SERVER
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+mongoose
+    .connect(process.env.MONGO_URI)
+    .then(() => {
+        console.log("MongoDB Connected");
+
+        app.listen(PORT, () => {
+            console.log(`Server running on port ${PORT}`);
+        });
+    })
+    .catch((error) => {
+        console.error("MongoDB Connection Error:", error.message);
+        process.exit(1);
+    });
