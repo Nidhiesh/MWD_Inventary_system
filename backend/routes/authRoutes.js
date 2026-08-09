@@ -2,51 +2,38 @@ const express = require("express");
 
 const router = express.Router();
 
+
+// ==========================================
+// CONTROLLER
+// ==========================================
+
 const {
-    login,
-    createStaff,
-    getStaff,
-    toggleStaffStatus
+    login
 } = require("../controllers/authController");
 
+
+// ==========================================
+// SECURITY MIDDLEWARE
+// ==========================================
+
 const {
-    protect,
-    authorize
-} = require("../middleware/authMiddleware");
+    authLimiter
+} = require("../middleware/securityMiddleware");
 
 
+// ==========================================
 // LOGIN
+// ==========================================
+
 router.post(
     "/login",
+    authLimiter,
     login
 );
 
 
-// ADMIN → CREATE STAFF
-router.post(
-    "/staff",
-    protect,
-    authorize("admin"),
-    createStaff
-);
-
-
-// ADMIN → GET STAFF
-router.get(
-    "/staff",
-    protect,
-    authorize("admin"),
-    getStaff
-);
-
-
-// ADMIN → ENABLE/DISABLE STAFF
-router.patch(
-    "/staff/:id/status",
-    protect,
-    authorize("admin"),
-    toggleStaffStatus
-);
-
+// ==========================================
+// EXPORT
+// ==========================================
 
 module.exports = router;
