@@ -1,6 +1,8 @@
 const Supplier = require("../models/Supplier");
 
-// CREATE
+// ==========================================
+// CREATE SUPPLIER
+// ==========================================
 const createSupplier = async (req, res) => {
     try {
         const supplier = await Supplier.create(req.body);
@@ -20,7 +22,9 @@ const createSupplier = async (req, res) => {
 };
 
 
-// GET ALL
+// ==========================================
+// GET ALL SUPPLIERS
+// ==========================================
 const getSuppliers = async (req, res) => {
     try {
         const suppliers = await Supplier.find()
@@ -41,7 +45,9 @@ const getSuppliers = async (req, res) => {
 };
 
 
-// GET ONE
+// ==========================================
+// GET SUPPLIER BY ID
+// ==========================================
 const getSupplierById = async (req, res) => {
     try {
         const supplier = await Supplier.findById(req.params.id);
@@ -67,7 +73,9 @@ const getSupplierById = async (req, res) => {
 };
 
 
-// UPDATE
+// ==========================================
+// UPDATE SUPPLIER
+// ==========================================
 const updateSupplier = async (req, res) => {
     try {
         const supplier = await Supplier.findByIdAndUpdate(
@@ -101,12 +109,16 @@ const updateSupplier = async (req, res) => {
 };
 
 
-// SOFT DELETE
+// ==========================================
+// SOFT DELETE SUPPLIER
+// ==========================================
 const deleteSupplier = async (req, res) => {
     try {
         const supplier = await Supplier.findByIdAndUpdate(
             req.params.id,
-            { status: "INACTIVE" },
+            {
+                status: "INACTIVE"
+            },
             {
                 new: true,
                 runValidators: true
@@ -135,6 +147,9 @@ const deleteSupplier = async (req, res) => {
 };
 
 
+// ==========================================
+// EXPORT CONTROLLERS
+// ==========================================
 module.exports = {
     createSupplier,
     getSuppliers,

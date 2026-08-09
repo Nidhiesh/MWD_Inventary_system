@@ -4,9 +4,16 @@ require("dotenv").config();
 
 const app = express();
 
+
+// ==========================================
+// MIDDLEWARE
+// ==========================================
 app.use(express.json());
 
-// Routes
+
+// ==========================================
+// ROUTES
+// ==========================================
 const productRoutes = require("./routes/productRoutes");
 const categoryRoutes = require("./routes/categoryRoutes");
 const supplierRoutes = require("./routes/supplierRoutes");
@@ -19,6 +26,9 @@ const dashboardRoutes = require("./routes/dashboardRoutes");
 const authRoutes = require("./routes/authRoutes");
 
 
+// ==========================================
+// API ROUTES
+// ==========================================
 app.use("/api/products", productRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/suppliers", supplierRoutes);
@@ -31,18 +41,43 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/auth", authRoutes);
 
 
+// ==========================================
+// ROOT API TEST
+// ==========================================
+app.get("/", (req, res) => {
+    res.status(200).json({
+        success: true,
+        message: "SmartStock Backend API is running"
+    });
+});
+
+
+// ==========================================
+// PORT
+// ==========================================
 const PORT = process.env.PORT || 5000;
 
+
+// ==========================================
+// MONGODB CONNECTION
+// ==========================================
 mongoose
     .connect(process.env.MONGO_URI)
     .then(() => {
+
         console.log("MongoDB Connected");
 
         app.listen(PORT, () => {
             console.log(`Server running on port ${PORT}`);
         });
+
     })
     .catch((error) => {
-        console.error("MongoDB Connection Error:", error.message);
+
+        console.error(
+            "MongoDB Connection Error:",
+            error.message
+        );
+
         process.exit(1);
     });

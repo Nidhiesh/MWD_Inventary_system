@@ -1,29 +1,65 @@
 const express = require("express");
 
+const { protect } = require("../middleware/authMiddleware");
+const { authorize } = require("../middleware/roleMiddleware");
+
 const {
     createPurchase,
     getPurchases,
     getPurchaseById,
-    receivePurchase
+    updatePurchase,
+    deletePurchase
 } = require("../controllers/purchaseController");
 
 const router = express.Router();
 
 
 // CREATE PURCHASE
-router.post("/", createPurchase);
+// ADMIN ONLY
+router.post(
+    "/",
+    protect,
+    authorize("ADMIN"),
+    createPurchase
+);
 
 
 // GET ALL PURCHASES
-router.get("/", getPurchases);
+// ADMIN + STAFF
+router.get(
+    "/",
+    protect,
+    getPurchases
+);
 
 
 // GET PURCHASE BY ID
-router.get("/:id", getPurchaseById);
+// ADMIN + STAFF
+router.get(
+    "/:id",
+    protect,
+    getPurchaseById
+);
 
 
-// RECEIVE PURCHASE
-router.put("/:id/receive", receivePurchase);
+// UPDATE PURCHASE
+// ADMIN ONLY
+router.put(
+    "/:id",
+    protect,
+    authorize("ADMIN"),
+    updatePurchase
+);
+
+
+// DELETE PURCHASE
+// ADMIN ONLY
+router.delete(
+    "/:id",
+    protect,
+    authorize("ADMIN"),
+    deletePurchase
+);
 
 
 module.exports = router;

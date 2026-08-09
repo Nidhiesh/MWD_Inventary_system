@@ -1,5 +1,8 @@
 const express = require("express");
 
+const { protect } = require("../middleware/authMiddleware");
+const { authorize } = require("../middleware/roleMiddleware");
+
 const {
     createCategory,
     getCategories,
@@ -11,24 +14,62 @@ const {
 const router = express.Router();
 
 
-// CREATE
-router.post("/", createCategory);
+// ==========================================
+// CREATE CATEGORY
+// ADMIN ONLY
+// ==========================================
+router.post(
+    "/",
+    protect,
+    authorize("ADMIN"),
+    createCategory
+);
 
 
-// GET ALL
-router.get("/", getCategories);
+// ==========================================
+// GET ALL CATEGORIES
+// ADMIN + STAFF
+// ==========================================
+router.get(
+    "/",
+    protect,
+    getCategories
+);
 
 
-// GET ONE
-router.get("/:id", getCategoryById);
+// ==========================================
+// GET CATEGORY BY ID
+// ADMIN + STAFF
+// ==========================================
+router.get(
+    "/:id",
+    protect,
+    getCategoryById
+);
 
 
-// UPDATE
-router.put("/:id", updateCategory);
+// ==========================================
+// UPDATE CATEGORY
+// ADMIN ONLY
+// ==========================================
+router.put(
+    "/:id",
+    protect,
+    authorize("ADMIN"),
+    updateCategory
+);
 
 
-// DELETE
-router.delete("/:id", deleteCategory);
+// ==========================================
+// DELETE CATEGORY
+// ADMIN ONLY
+// ==========================================
+router.delete(
+    "/:id",
+    protect,
+    authorize("ADMIN"),
+    deleteCategory
+);
 
 
 module.exports = router;

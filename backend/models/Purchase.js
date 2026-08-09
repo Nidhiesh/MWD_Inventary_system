@@ -14,10 +14,10 @@ const purchaseItemSchema = new mongoose.Schema(
             min: [1, "Quantity must be at least 1"]
         },
 
-        purchasePrice: {
+        costPrice: {
             type: Number,
-            required: [true, "Purchase price is required"],
-            min: [0, "Purchase price cannot be negative"]
+            required: [true, "Cost price is required"],
+            min: [0, "Cost price cannot be negative"]
         },
 
         total: {
@@ -27,20 +27,13 @@ const purchaseItemSchema = new mongoose.Schema(
         }
     },
     {
-        _id: true
+        _id: false
     }
 );
 
 
 const purchaseSchema = new mongoose.Schema(
     {
-        purchaseNumber: {
-            type: String,
-            required: true,
-            unique: true,
-            trim: true
-        },
-
         supplier: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Supplier",
@@ -49,7 +42,7 @@ const purchaseSchema = new mongoose.Schema(
 
         items: {
             type: [purchaseItemSchema],
-            required: true,
+            required: [true, "Purchase items are required"],
             validate: {
                 validator: function (items) {
                     return items.length > 0;
@@ -58,32 +51,10 @@ const purchaseSchema = new mongoose.Schema(
             }
         },
 
-        subtotal: {
+        grandTotal: {
             type: Number,
             required: true,
             min: 0
-        },
-
-        tax: {
-            type: Number,
-            default: 0,
-            min: 0
-        },
-
-        totalAmount: {
-            type: Number,
-            required: true,
-            min: 0
-        },
-
-        status: {
-            type: String,
-            enum: [
-                "DRAFT",
-                "RECEIVED",
-                "CANCELLED"
-            ],
-            default: "DRAFT"
         },
 
         purchaseDate: {
@@ -91,10 +62,10 @@ const purchaseSchema = new mongoose.Schema(
             default: Date.now
         },
 
-        notes: {
+        status: {
             type: String,
-            default: "",
-            trim: true
+            enum: ["PENDING", "RECEIVED", "CANCELLED"],
+            default: "RECEIVED"
         }
     },
     {
@@ -103,9 +74,4 @@ const purchaseSchema = new mongoose.Schema(
 );
 
 
-const Purchase = mongoose.model(
-    "Purchase",
-    purchaseSchema
-);
-
-module.exports = Purchase;
+module.exports = mongoose.model("Purchase", purchaseSchema);

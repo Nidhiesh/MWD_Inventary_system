@@ -1,5 +1,8 @@
 const express = require("express");
 
+const { protect } = require("../middleware/authMiddleware");
+const { authorize } = require("../middleware/roleMiddleware");
+
 const {
     createSupplier,
     getSuppliers,
@@ -10,14 +13,48 @@ const {
 
 const router = express.Router();
 
-router.post("/", createSupplier);
 
-router.get("/", getSuppliers);
+// CREATE - ADMIN ONLY
+router.post(
+    "/",
+    protect,
+    authorize("ADMIN"),
+    createSupplier
+);
 
-router.get("/:id", getSupplierById);
 
-router.put("/:id", updateSupplier);
+// GET ALL - ADMIN + STAFF
+router.get(
+    "/",
+    protect,
+    getSuppliers
+);
 
-router.delete("/:id", deleteSupplier);
+
+// GET ONE - ADMIN + STAFF
+router.get(
+    "/:id",
+    protect,
+    getSupplierById
+);
+
+
+// UPDATE - ADMIN ONLY
+router.put(
+    "/:id",
+    protect,
+    authorize("ADMIN"),
+    updateSupplier
+);
+
+
+// DELETE - ADMIN ONLY
+router.delete(
+    "/:id",
+    protect,
+    authorize("ADMIN"),
+    deleteSupplier
+);
+
 
 module.exports = router;
