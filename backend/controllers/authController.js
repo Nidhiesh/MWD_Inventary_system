@@ -1,160 +1,197 @@
-const User = require('../models/User');
-const generateToken = require('../utils/generateToken');
-const logAudit = require('../utils/auditLogger');
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const User = require("../models/User");
 
-/**
- * @desc    Register a new user
- * @route   POST /api/auth/register
- * @access  Public (or restricted to Admin, but requested as public register)
- */
-const registerUser = async (req, res, next) => {
-  try {
-    const { name, email, password, role } = req.body;
 
-    if (!name || !email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please provide name, email, and password'
-      });
-    }
+// ==========================================
+// REGISTER USER
+// POST /api/auth/register
+// ==========================================
+const registerUser = async (req, res) => {
+    try {
 
-    // Check if user already exists
-    const userExists = await User.findOne({ email });
-    if (userExists) {
-      return res.status(409).json({
-        success: false,
-        message: 'User already exists with this email'
-      });
-    }
+        const {
+            name,
+            email,
+            password,
+            role
+        } = req.body;
 
-    // Create user
-    const user = await User.create({
-      name,
-      email,
-      password,
-      role: role || 'STAFF',
-      status: 'ACTIVE'
-    });
 
-    if (user) {
-      const token = generateToken(user._id, user.role);
-      
-      // Log audit
-      await logAudit(user._id, 'REGISTER', 'Auth', user._id, `User registered: ${user.email}`);
-
-      res.status(201).json({
-        success: true,
-        message: 'User registered successfully',
-        data: {
-          _id: user._id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          status: user.status,
-          token
+        // CHECK REQUIRED FIELDS
+        if (!name || !email || !password) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Name, email and password are required"
+            });
         }
-      });
-    } else {
-      res.status(400).json({
-        success: false,
-        message: 'Invalid user data provided'
-      });
+
+
+        // CHECK EXISTING USER
+        const existingUser =
+            await User.findOne({
+                email
+            });
+
+
+        if (existingUser) {
+            return res.status(400).json({
+                success: false,
+                message: "User with this email already exists"
+            });
+        }
+
+
+        // HASH PASSWORD
+        const hashedPassword =
+            await bcrypt.hash(password, 10);
+
+
+        // CREATE USER
+        const user =
+            await User.create({
+                name,
+                email,
+                password: hashedPassword,
+                role: role || "STAFF"
+            });
+
+
+        // REMOVE PASSWORD FROM RESPONSE
+        const userResponse = {
+            _id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            status: user.status
+        };
+
+
+        res.status(201).json({
+            success: true,
+            message: "User registered successfully",
+            data: userResponse
+        });
+
+
+    } catch (error) {
+
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+
     }
-  } catch (error) {
-    next(error);
-  }
 };
 
-/**
- * @desc    Auth user & get token
- * @route   POST /api/auth/login
- * @access  Public
- */
-const loginUser = async (req, res, next) => {
-  try {
-    const { email, password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please provide email and password'
-      });
+// ==========================================
+// LOGIN USER
+// POST /api/auth/login
+// ==========================================
+const loginUser = async (req, res) => {
+    try {
+
+        const {
+            email,
+            password
+        } = req.body;
+
+
+        // CHECK INPUT
+        if (!email || !password) {
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Email and password are required"
+            });
+        }
+
+
+        // FIND USER
+        const user =
+            await User.findOne({
+                email
+            });
+
+
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid email or password"
+            });
+        }
+
+
+        // CHECK STATUS
+        if (user.status === "INACTIVE") {
+            return res.status(403).json({
+                success: false,
+                message: "User account is inactive"
+            });
+        }
+
+
+        // COMPARE PASSWORD
+        const passwordMatch =
+            await bcrypt.compare(
+                password,
+                user.password
+            );
+
+
+        if (!passwordMatch) {
+            return res.status(401).json({
+                success: false,
+                message: "Invalid email or password"
+            });
+        }
+
+
+        // CREATE JWT
+        const token =
+            jwt.sign(
+                {
+                    id: user._id,
+                    role: user.role
+                },
+                process.env.JWT_SECRET,
+                {
+                    expiresIn: "1d"
+                }
+            );
+
+
+        // RESPONSE
+        res.status(200).json({
+            success: true,
+            message: "Login successful",
+
+            token,
+
+            user: {
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                status: user.status
+            }
+        });
+
+
+    } catch (error) {
+
+        res.status(500).json({
+            success: false,
+            message: error.message
+        });
+
     }
-
-    // Find user and include password field
-    const user = await User.findOne({ email }).select('+password');
-    if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid email or password'
-      });
-    }
-
-    // Check status
-    if (user.status === 'INACTIVE') {
-      return res.status(403).json({
-        success: false,
-        message: 'Your account is deactivated. Please contact support.'
-      });
-    }
-
-    // Compare passwords
-    const isMatch = await user.matchPassword(password);
-    if (!isMatch) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid email or password'
-      });
-    }
-
-    const token = generateToken(user._id, user.role);
-
-    // Log audit
-    await logAudit(user._id, 'LOGIN', 'Auth', user._id, `User logged in: ${user.email}`);
-
-    res.status(200).json({
-      success: true,
-      message: 'Login successful',
-      data: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        status: user.status,
-        token
-      }
-    });
-  } catch (error) {
-    next(error);
-  }
 };
 
-/**
- * @desc    Get current user profile
- * @route   GET /api/auth/me
- * @access  Private
- */
-const getMe = async (req, res, next) => {
-  try {
-    const user = await User.findById(req.user._id);
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User profile not found'
-      });
-    }
-    res.status(200).json({
-      success: true,
-      message: 'Profile retrieved successfully',
-      data: user
-    });
-  } catch (error) {
-    next(error);
-  }
-};
 
 module.exports = {
-  registerUser,
-  loginUser,
-  getMe
+    registerUser,
+    loginUser
 };
