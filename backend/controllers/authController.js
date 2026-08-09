@@ -170,7 +170,6 @@ const login = async (req, res) => {
 // ==========================================
 
 const createStaff = async (req, res) => {
-
     try {
 
         const {
@@ -186,48 +185,36 @@ const createStaff = async (req, res) => {
         // ==========================================
 
         if (!name || !email || !password) {
-
             return res.status(400).json({
                 success: false,
-                message:
-                    "Name, email and password are required"
+                message: "Name, email and password are required"
             });
-
         }
 
 
-        if (password.length < 8) {
+        // ==========================================
+        // NORMALIZE EMAIL
+        // ==========================================
 
-            return res.status(400).json({
-                success: false,
-                message:
-                    "Password must be at least 8 characters"
-            });
-
-        }
-
-
-        const normalizedEmail =
-            email.trim().toLowerCase();
+        const normalizedEmail = email
+            .trim()
+            .toLowerCase();
 
 
         // ==========================================
-        // CHECK EXISTING EMAIL
+        // CHECK EMAIL
         // ==========================================
 
-        const existingUser =
-            await User.findOne({
-                email: normalizedEmail
-            });
+        const existingUser = await User.findOne({
+            email: normalizedEmail
+        });
 
 
         if (existingUser) {
-
             return res.status(409).json({
                 success: false,
                 message: "Email already registered"
             });
-
         }
 
 
@@ -243,9 +230,7 @@ const createStaff = async (req, res) => {
 
             password,
 
-            phone: phone
-                ? phone.trim()
-                : "",
+            phone: phone || "",
 
             role: "staff",
 
@@ -262,23 +247,15 @@ const createStaff = async (req, res) => {
 
             success: true,
 
-            message:
-                "Staff account created successfully",
+            message: "Staff account created successfully",
 
             user: {
-
                 id: staff._id,
-
                 name: staff.name,
-
                 email: staff.email,
-
                 phone: staff.phone,
-
                 role: staff.role,
-
                 isActive: staff.isActive
-
             }
 
         });
@@ -287,43 +264,52 @@ const createStaff = async (req, res) => {
 
         console.error(
             "Create Staff Error:",
-            error.message
+            error
         );
 
 
-        // Duplicate email
+        // ==========================================
+        // DUPLICATE EMAIL
+        // ==========================================
+
         if (error.code === 11000) {
 
             return res.status(409).json({
                 success: false,
                 message: "Email already registered"
             });
-
         }
 
 
-        // Mongoose validation
+        // ==========================================
+        // MONGOOSE VALIDATION
+        // ==========================================
+
         if (error.name === "ValidationError") {
 
-            const messages =
-                Object.values(error.errors)
-                    .map(err => err.message);
+            const messages = Object.values(
+                error.errors
+            ).map(err => err.message);
 
             return res.status(400).json({
                 success: false,
                 message: messages.join(", ")
             });
-
         }
 
 
+        // ==========================================
+        // SERVER ERROR
+        // ==========================================
+
         return res.status(500).json({
             success: false,
-            message: "Unable to create staff account"
+            message:
+                process.env.NODE_ENV === "production"
+                    ? "Unable to create staff account"
+                    : error.message
         });
-
     }
-
 };
 
 

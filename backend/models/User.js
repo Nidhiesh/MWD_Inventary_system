@@ -19,6 +19,7 @@ const userSchema = new mongoose.Schema(
             maxlength: [100, "Name cannot exceed 100 characters"]
         },
 
+
         // ==========================================
         // EMAIL
         // ==========================================
@@ -30,12 +31,12 @@ const userSchema = new mongoose.Schema(
             lowercase: true,
             trim: true,
             maxlength: [150, "Email cannot exceed 150 characters"],
-
             match: [
                 /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
                 "Please provide a valid email address"
             ]
         },
+
 
         // ==========================================
         // PASSWORD
@@ -48,6 +49,7 @@ const userSchema = new mongoose.Schema(
             select: false
         },
 
+
         // ==========================================
         // PHONE
         // ==========================================
@@ -56,8 +58,12 @@ const userSchema = new mongoose.Schema(
             type: String,
             trim: true,
             default: "",
-            maxlength: [20, "Phone number cannot exceed 20 characters"]
+            maxlength: [
+                20,
+                "Phone number cannot exceed 20 characters"
+            ]
         },
+
 
         // ==========================================
         // ROLE
@@ -72,6 +78,7 @@ const userSchema = new mongoose.Schema(
             default: "staff"
         },
 
+
         // ==========================================
         // ACCOUNT STATUS
         // ==========================================
@@ -81,6 +88,7 @@ const userSchema = new mongoose.Schema(
             default: true
         }
     },
+
     {
         timestamps: true
     }
@@ -91,32 +99,21 @@ const userSchema = new mongoose.Schema(
 // HASH PASSWORD BEFORE SAVE
 // ==========================================
 
-userSchema.pre("save", async function (next) {
+userSchema.pre("save", async function () {
 
-    try {
-
-        // Don't hash password again
-        if (!this.isModified("password")) {
-            return next();
-        }
-
-        // Generate salt
-        const salt = await bcrypt.genSalt(12);
-
-        // Hash password
-        this.password = await bcrypt.hash(
-            this.password,
-            salt
-        );
-
-        next();
-
-    } catch (error) {
-
-        next(error);
-
+    // Don't hash password again
+    if (!this.isModified("password")) {
+        return;
     }
 
+    // Generate salt
+    const salt = await bcrypt.genSalt(12);
+
+    // Hash password
+    this.password = await bcrypt.hash(
+        this.password,
+        salt
+    );
 });
 
 
@@ -130,7 +127,6 @@ userSchema.methods.comparePassword = async function (password) {
         password,
         this.password
     );
-
 };
 
 
@@ -145,10 +141,7 @@ userSchema.methods.toJSON = function () {
     delete user.password;
 
     return user;
-
 };
-
-
 
 
 // ==========================================
