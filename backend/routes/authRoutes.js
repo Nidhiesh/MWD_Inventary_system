@@ -2,7 +2,6 @@ const express = require("express");
 
 const router = express.Router();
 
-
 // ==========================================
 // CONTROLLERS
 // ==========================================
@@ -14,24 +13,21 @@ const {
     toggleStaffStatus
 } = require("../controllers/authController");
 
-
 // ==========================================
 // MIDDLEWARE
 // ==========================================
-
-const {
-    authLimiter
-} = require("../middleware/securityMiddleware");
 
 const {
     protect,
     authorize
 } = require("../middleware/authMiddleware");
 
+const {
+    authLimiter
+} = require("../middleware/securityMiddleware");
 
 // ==========================================
-// LOGIN
-// PUBLIC
+// ADMIN LOGIN
 // ==========================================
 
 router.post(
@@ -39,7 +35,6 @@ router.post(
     authLimiter,
     login
 );
-
 
 // ==========================================
 // CREATE STAFF
@@ -53,9 +48,8 @@ router.post(
     createStaff
 );
 
-
 // ==========================================
-// GET STAFF
+// GET ALL STAFF
 // ADMIN ONLY
 // ==========================================
 
@@ -65,7 +59,6 @@ router.get(
     authorize("admin"),
     getStaff
 );
-
 
 // ==========================================
 // ENABLE / DISABLE STAFF
@@ -78,7 +71,6 @@ router.patch(
     authorize("admin"),
     toggleStaffStatus
 );
-
 
 // ==========================================
 // EXPORT
