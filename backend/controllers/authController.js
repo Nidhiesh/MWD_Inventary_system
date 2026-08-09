@@ -8,14 +8,16 @@ const jwt = require("jsonwebtoken");
 
 const generateToken = (user) => {
 
+    if (!process.env.JWT_SECRET) {
+        throw new Error("JWT_SECRET is not configured");
+    }
+
     return jwt.sign(
         {
-            id: user._id,
+            id: user._id.toString(),
             role: user.role
         },
-
         process.env.JWT_SECRET,
-
         {
             expiresIn: "7d"
         }
@@ -33,19 +35,46 @@ const login = async (req, res) => {
 
         const { email, password } = req.body;
 
-        if (!email || !password) {
+
+        // ==========================================
+        // VALIDATE INPUT
+        // ==========================================
+
+        if (
+            !email ||
+            typeof email !== "string" ||
+            !password ||
+            typeof password !== "string"
+        ) {
 
             return res.status(400).json({
                 success: false,
                 message: "Email and password are required"
             });
+
         }
 
 
-        const user = await User.findOne({
-            email: email.toLowerCase()
-        });
+        // ==========================================
+        // NORMALIZE EMAIL
+        // ==========================================
 
+        const normalizedEmail =
+            email.trim().toLowerCase();
+
+
+        // ==========================================
+        // FIND USER + INCLUDE PASSWORD
+        // ==========================================
+
+        const user = await User.findOne({
+            email: normalizedEmail
+        }).select("+password");
+
+
+        // ==========================================
+        // USER NOT FOUND
+        // ==========================================
 
         if (!user) {
 
@@ -53,17 +82,27 @@ const login = async (req, res) => {
                 success: false,
                 message: "Invalid email or password"
             });
+
         }
 
 
-        if (!user.isActive) {
+        // ==========================================
+        // CHECK ACCOUNT STATUS
+        // ==========================================
+
+        if (user.isActive === false) {
 
             return res.status(403).json({
                 success: false,
                 message: "Your account has been disabled"
             });
+
         }
 
+
+        // ==========================================
+        // CHECK PASSWORD
+        // ==========================================
 
         const passwordMatch =
             await user.comparePassword(password);
@@ -75,13 +114,22 @@ const login = async (req, res) => {
                 success: false,
                 message: "Invalid email or password"
             });
+
         }
 
+
+        // ==========================================
+        // GENERATE TOKEN
+        // ==========================================
 
         const token = generateToken(user);
 
 
-        res.status(200).json({
+        // ==========================================
+        // SUCCESS RESPONSE
+        // ==========================================
+
+        return res.status(200).json({
 
             success: true,
 
@@ -99,16 +147,20 @@ const login = async (req, res) => {
 
         });
 
-
     } catch (error) {
 
-        console.error("Login Error:", error);
+        console.error(
+            "Login Error:",
+            error.message
+        );
 
-        res.status(500).json({
+        return res.status(500).json({
             success: false,
-            message: error.message
+            message: "Unable to process login"
         });
+
     }
+
 };
 
 
@@ -129,6 +181,10 @@ const createStaff = async (req, res) => {
         } = req.body;
 
 
+        // ==========================================
+        // VALIDATION
+        // ==========================================
+
         if (!name || !email || !password) {
 
             return res.status(400).json({
@@ -136,12 +192,32 @@ const createStaff = async (req, res) => {
                 message:
                     "Name, email and password are required"
             });
+
         }
 
 
+        if (password.length < 8) {
+
+            return res.status(400).json({
+                success: false,
+                message:
+                    "Password must be at least 8 characters"
+            });
+
+        }
+
+
+        const normalizedEmail =
+            email.trim().toLowerCase();
+
+
+        // ==========================================
+        // CHECK EXISTING EMAIL
+        // ==========================================
+
         const existingUser =
             await User.findOne({
-                email: email.toLowerCase()
+                email: normalizedEmail
             });
 
 
@@ -151,18 +227,25 @@ const createStaff = async (req, res) => {
                 success: false,
                 message: "Email already registered"
             });
+
         }
 
 
+        // ==========================================
+        // CREATE STAFF
+        // ==========================================
+
         const staff = await User.create({
 
-            name,
+            name: name.trim(),
 
-            email: email.toLowerCase(),
+            email: normalizedEmail,
 
             password,
 
-            phone: phone || "",
+            phone: phone
+                ? phone.trim()
+                : "",
 
             role: "staff",
 
@@ -171,36 +254,76 @@ const createStaff = async (req, res) => {
         });
 
 
-        res.status(201).json({
+        // ==========================================
+        // RESPONSE
+        // ==========================================
+
+        return res.status(201).json({
 
             success: true,
 
-            message: "Staff account created successfully",
+            message:
+                "Staff account created successfully",
 
             user: {
+
                 id: staff._id,
+
                 name: staff.name,
+
                 email: staff.email,
+
                 phone: staff.phone,
+
                 role: staff.role,
+
                 isActive: staff.isActive
+
             }
 
         });
-
 
     } catch (error) {
 
         console.error(
             "Create Staff Error:",
-            error
+            error.message
         );
 
-        res.status(500).json({
+
+        // Duplicate email
+        if (error.code === 11000) {
+
+            return res.status(409).json({
+                success: false,
+                message: "Email already registered"
+            });
+
+        }
+
+
+        // Mongoose validation
+        if (error.name === "ValidationError") {
+
+            const messages =
+                Object.values(error.errors)
+                    .map(err => err.message);
+
+            return res.status(400).json({
+                success: false,
+                message: messages.join(", ")
+            });
+
+        }
+
+
+        return res.status(500).json({
             success: false,
-            message: error.message
+            message: "Unable to create staff account"
         });
+
     }
+
 };
 
 
@@ -215,13 +338,13 @@ const getStaff = async (req, res) => {
         const staff = await User.find({
             role: "staff"
         })
-        .select("-password")
-        .sort({
-            createdAt: -1
-        });
+            .select("-password")
+            .sort({
+                createdAt: -1
+            });
 
 
-        res.status(200).json({
+        return res.status(200).json({
 
             success: true,
 
@@ -231,19 +354,25 @@ const getStaff = async (req, res) => {
 
         });
 
-
     } catch (error) {
 
-        res.status(500).json({
+        console.error(
+            "Get Staff Error:",
+            error.message
+        );
+
+        return res.status(500).json({
             success: false,
-            message: error.message
+            message: "Unable to fetch staff"
         });
+
     }
+
 };
 
 
 // ==========================================
-// DISABLE STAFF
+// TOGGLE STAFF STATUS
 // ==========================================
 
 const toggleStaffStatus = async (req, res) => {
@@ -263,15 +392,18 @@ const toggleStaffStatus = async (req, res) => {
                 success: false,
                 message: "Staff member not found"
             });
+
         }
 
 
-        staff.isActive = !staff.isActive;
+        staff.isActive =
+            !staff.isActive;
+
 
         await staff.save();
 
 
-        res.status(200).json({
+        return res.status(200).json({
 
             success: true,
 
@@ -284,16 +416,26 @@ const toggleStaffStatus = async (req, res) => {
 
         });
 
-
     } catch (error) {
 
-        res.status(500).json({
+        console.error(
+            "Toggle Staff Error:",
+            error.message
+        );
+
+        return res.status(500).json({
             success: false,
-            message: error.message
+            message: "Unable to update staff status"
         });
+
     }
+
 };
 
+
+// ==========================================
+// EXPORT
+// ==========================================
 
 module.exports = {
     login,
