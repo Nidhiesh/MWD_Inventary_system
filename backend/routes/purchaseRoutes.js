@@ -15,11 +15,11 @@ const router = express.Router();
 
 
 // CREATE PURCHASE
-// ADMIN ONLY
+// ADMIN + STAFF
 router.post(
     "/",
     protect,
-    authorize("ADMIN"),
+    authorize("ADMIN", "STAFF"),
     createPurchase
 );
 

@@ -71,6 +71,15 @@ mongoose
 
         console.log("MongoDB Connected");
 
+        // Drop stale purchaseNumber_1 index from purchases collection if it exists
+        mongoose.connection.db.collection("purchases").dropIndex("purchaseNumber_1")
+            .then(() => {
+                console.log("Successfully dropped stale purchaseNumber_1 index");
+            })
+            .catch((err) => {
+                console.log("Index purchaseNumber_1 not found or already dropped");
+            });
+
         app.listen(PORT, () => {
             console.log(`Server running on port ${PORT}`);
         });
