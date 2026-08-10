@@ -14,45 +14,67 @@ const {
 const router = express.Router();
 
 
+// ==========================================
 // CREATE CUSTOMER
+// ADMIN + STAFF
+// ==========================================
+
 router.post(
     "/",
     protect,
-    authorize("ADMIN", "STAFF"),
+    authorize("admin", "staff"),
     createCustomer
 );
 
 
+// ==========================================
 // GET ALL CUSTOMERS
+// ADMIN + STAFF
+// ==========================================
+
 router.get(
     "/",
     protect,
+    authorize("admin", "staff"),
     getCustomers
 );
 
 
+// ==========================================
 // GET CUSTOMER BY ID
+// ADMIN + STAFF
+// ==========================================
+
 router.get(
     "/:id",
     protect,
+    authorize("admin", "staff"),
     getCustomerById
 );
 
 
+// ==========================================
 // UPDATE CUSTOMER
+// ADMIN + STAFF
+// ==========================================
+
 router.put(
     "/:id",
     protect,
-    authorize("ADMIN", "STAFF"),
+    authorize("admin", "staff"),
     updateCustomer
 );
 
 
+// ==========================================
 // DELETE / DEACTIVATE CUSTOMER
+// ADMIN ONLY
+// ==========================================
+
 router.delete(
     "/:id",
     protect,
-    authorize("ADMIN"),
+    authorize("admin"),
     deleteCustomer
 );
 

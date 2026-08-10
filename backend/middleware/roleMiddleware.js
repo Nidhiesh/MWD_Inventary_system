@@ -2,26 +2,59 @@ const authorize = (...allowedRoles) => {
 
     return (req, res, next) => {
 
+        // ==========================================
+        // USER MUST BE AUTHENTICATED
+        // ==========================================
+
         if (!req.user) {
+
             return res.status(401).json({
                 success: false,
-                message: "Authentication required."
+                message: "Not authorized. Please login."
             });
+
         }
 
-        const userRole = req.user.role ? req.user.role.toLowerCase() : "";
-        const allowedRolesLower = allowedRoles.map(role => role.toLowerCase());
+        // ==========================================
+        // NORMALIZE USER ROLE
+        // ==========================================
 
-        if (!allowedRolesLower.includes(userRole)) {
+        const userRole = String(req.user.role)
+            .trim()
+            .toLowerCase();
+
+        // ==========================================
+        // NORMALIZE ALLOWED ROLES
+        // ==========================================
+
+        const normalizedRoles = allowedRoles.map(
+            role =>
+                String(role)
+                    .trim()
+                    .toLowerCase()
+        );
+
+        // ==========================================
+        // CHECK PERMISSION
+        // ==========================================
+
+        if (!normalizedRoles.includes(userRole)) {
+
             return res.status(403).json({
                 success: false,
-                message: "You do not have permission to perform this action."
+                message: "You do not have permission"
             });
+
         }
+
+        // ==========================================
+        // AUTHORIZED
+        // ==========================================
 
         next();
     };
 };
+
 
 module.exports = {
     authorize

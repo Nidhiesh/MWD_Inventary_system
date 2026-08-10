@@ -1,7 +1,12 @@
 const express = require("express");
 
-const { protect } = require("../middleware/authMiddleware");
-const { authorize } = require("../middleware/roleMiddleware");
+const {
+    protect
+} = require("../middleware/authMiddleware");
+
+const {
+    authorize
+} = require("../middleware/roleMiddleware");
 
 const {
     createCategory,
@@ -18,10 +23,11 @@ const router = express.Router();
 // CREATE CATEGORY
 // ADMIN ONLY
 // ==========================================
+
 router.post(
     "/",
     protect,
-    authorize("ADMIN"),
+    authorize("admin"),
     createCategory
 );
 
@@ -30,9 +36,11 @@ router.post(
 // GET ALL CATEGORIES
 // ADMIN + STAFF
 // ==========================================
+
 router.get(
     "/",
     protect,
+    authorize("admin", "staff"),
     getCategories
 );
 
@@ -41,9 +49,11 @@ router.get(
 // GET CATEGORY BY ID
 // ADMIN + STAFF
 // ==========================================
+
 router.get(
     "/:id",
     protect,
+    authorize("admin", "staff"),
     getCategoryById
 );
 
@@ -52,10 +62,11 @@ router.get(
 // UPDATE CATEGORY
 // ADMIN ONLY
 // ==========================================
+
 router.put(
     "/:id",
     protect,
-    authorize("ADMIN"),
+    authorize("admin"),
     updateCategory
 );
 
@@ -64,10 +75,11 @@ router.put(
 // DELETE CATEGORY
 // ADMIN ONLY
 // ==========================================
+
 router.delete(
     "/:id",
     protect,
-    authorize("ADMIN"),
+    authorize("admin"),
     deleteCategory
 );
 

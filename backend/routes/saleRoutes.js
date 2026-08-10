@@ -16,6 +16,7 @@ const router = express.Router();
 // CREATE SALE
 // ADMIN + STAFF
 // ==========================================
+
 router.post(
     "/",
     protect,
@@ -28,6 +29,7 @@ router.post(
 // GET ALL SALES
 // ADMIN + STAFF
 // ==========================================
+
 router.get(
     "/",
     protect,
@@ -39,6 +41,7 @@ router.get(
 // GET SALE BY ID
 // ADMIN + STAFF
 // ==========================================
+
 router.get(
     "/:id",
     protect,
