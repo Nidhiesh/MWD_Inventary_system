@@ -59,6 +59,7 @@ const dashboardRoutes = require("./routes/dashboardRoutes");
 const authRoutes = require("./routes/authRoutes");
 const reportRoutes = require("./routes/reportRoutes");
 const analyticsRoutes = require("./routes/analyticsRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 
 
 // ==========================================
@@ -88,6 +89,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/reports", reportRoutes);
 
 app.use("/api/analytics", analyticsRoutes);
+
+app.use("/api/notifications", notificationRoutes);
 
 
 // ==========================================
