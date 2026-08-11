@@ -246,7 +246,7 @@ const Reports = () => {
               {salesData.sales?.length > 0 && (
                 <div className="card chart-card">
                   <h3 className="chart-title">Invoiced Sales Progression</h3>
-                  <div style={{ flexGrow: 1, height: "260px", marginTop: "16px" }}>
+                  <div style={{ flexGrow: 1, minHeight: "260px", marginTop: "16px" }}>
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={[...salesData.sales].reverse()}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -354,7 +354,7 @@ const Reports = () => {
               {purchasesData.purchases?.length > 0 && (
                 <div className="card chart-card">
                   <h3 className="chart-title">Restocking Spend Progression</h3>
-                  <div style={{ flexGrow: 1, height: "260px", marginTop: "16px" }}>
+                  <div style={{ flexGrow: 1, minHeight: "260px", marginTop: "16px" }}>
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={[...purchasesData.purchases].reverse()}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -466,7 +466,7 @@ const Reports = () => {
               {inventoryData.products?.length > 0 && (
                 <div className="card chart-card">
                   <h3 className="chart-title">Valuation distribution (Top 10 Assets by Cost Value)</h3>
-                  <div style={{ flexGrow: 1, height: "260px", marginTop: "16px" }}>
+                  <div style={{ flexGrow: 1, minHeight: "260px", marginTop: "16px" }}>
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart 
                         data={

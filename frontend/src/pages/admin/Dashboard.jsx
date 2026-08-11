@@ -168,7 +168,7 @@ const Dashboard = () => {
           <div className="chart-header">
             <h3 className="chart-title">Today's Financial Flows ($)</h3>
           </div>
-          <div style={{ flexGrow: 1, height: "260px" }}>
+          <div style={{ flexGrow: 1, minHeight: "260px" }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={todayFinancialData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
@@ -185,7 +185,7 @@ const Dashboard = () => {
           <div className="chart-header">
             <h3 className="chart-title">Stock Health</h3>
           </div>
-          <div style={{ flexGrow: 1, height: "220px", position: "relative" }}>
+          <div style={{ flexGrow: 1, minHeight: "220px", position: "relative" }}>
             {stockHealthData.length === 0 ? (
               <div className="empty-state" style={{ height: "100%" }}>No stock items available</div>
             ) : (
@@ -219,7 +219,7 @@ const Dashboard = () => {
           <div className="chart-header">
             <h3 className="chart-title">System Entity Distribution</h3>
           </div>
-          <div style={{ flexGrow: 1, height: "200px" }}>
+          <div style={{ flexGrow: 1, minHeight: "200px" }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={distributionData} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" horizontal={false} />
