@@ -14,50 +14,67 @@ const {
 const router = express.Router();
 
 
+// ==========================================
 // CREATE PURCHASE
-// ADMIN + STAFF
+// ADMIN ONLY
+// ==========================================
+
 router.post(
     "/",
     protect,
-    authorize("ADMIN", "STAFF"),
+    authorize("admin"),
     createPurchase
 );
 
 
+// ==========================================
 // GET ALL PURCHASES
 // ADMIN + STAFF
+// ==========================================
+
 router.get(
     "/",
     protect,
+    authorize("admin", "staff"),
     getPurchases
 );
 
 
+// ==========================================
 // GET PURCHASE BY ID
 // ADMIN + STAFF
+// ==========================================
+
 router.get(
     "/:id",
     protect,
+    authorize("admin", "staff"),
     getPurchaseById
 );
 
 
+// ==========================================
 // UPDATE PURCHASE
 // ADMIN ONLY
+// ==========================================
+
 router.put(
     "/:id",
     protect,
-    authorize("ADMIN"),
+    authorize("admin"),
     updatePurchase
 );
 
 
+// ==========================================
 // DELETE PURCHASE
 // ADMIN ONLY
+// ==========================================
+
 router.delete(
     "/:id",
     protect,
-    authorize("ADMIN"),
+    authorize("admin"),
     deletePurchase
 );
 
