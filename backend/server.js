@@ -60,6 +60,7 @@ const authRoutes = require("./routes/authRoutes");
 const reportRoutes = require("./routes/reportRoutes");
 const analyticsRoutes = require("./routes/analyticsRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const auditRoutes = require("./routes/auditRoutes");
 
 
 // ==========================================
@@ -91,6 +92,8 @@ app.use("/api/reports", reportRoutes);
 app.use("/api/analytics", analyticsRoutes);
 
 app.use("/api/notifications", notificationRoutes);
+
+app.use("/api/audit", auditRoutes);
 
 
 // ==========================================
@@ -160,31 +163,6 @@ mongoose
     .then(() => {
 
         console.log("MongoDB Connected");
-
-
-        // ==========================================
-        // DROP STALE PURCHASE INDEX
-        // ==========================================
-
-        mongoose.connection.db
-            .collection("purchases")
-            .dropIndex("purchaseNumber_1")
-
-            .then(() => {
-
-                console.log(
-                    "Successfully dropped stale purchaseNumber_1 index"
-                );
-
-            })
-
-            .catch(() => {
-
-                console.log(
-                    "Index purchaseNumber_1 not found or already dropped"
-                );
-
-            });
 
 
         // ==========================================
