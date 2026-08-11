@@ -9,6 +9,7 @@ frontend/dist/
 
 # Environment secrets and logs
 .env
+.env.*
 backend/.env
 *.log
 npm-debug.log*

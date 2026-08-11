@@ -1,12 +1,29 @@
-const express = require('express');
+const express = require("express");
+
 const router = express.Router();
-const { getAuditLogs } = require('../controllers/auditController');
-const { protect } = require('../middleware/authMiddleware');
-const { authorize } = require('../middleware/roleMiddleware');
+
+const { getAuditLogs } = require("../controllers/auditController");
+const { protect } = require("../middleware/authMiddleware");
+const { authorize } = require("../middleware/roleMiddleware");
+
+
+// ==========================================
+// AUDIT LOGS
+// ADMIN ONLY
+// ==========================================
 
 router.use(protect);
-router.use(authorize('ADMIN')); // strictly Admin only as requested
+router.use(authorize("admin"));
 
-router.get('/', getAuditLogs);
+
+// ==========================================
+// GET AUDIT LOGS
+// ==========================================
+
+router.get(
+    "/",
+    getAuditLogs
+);
+
 
 module.exports = router;

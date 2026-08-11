@@ -1,45 +1,40 @@
 const express = require("express");
 
 const { protect } = require("../middleware/authMiddleware");
+const { authorize } = require("../middleware/roleMiddleware");
 
 const {
-    getNotifications,
-    getUnreadNotifications,
-    markNotificationAsRead,
-    markAllNotificationsAsRead,
-    deleteNotification
-} = require("../controllers/notificationController");
+    getLowStockProducts,
+    getOutOfStockProducts
+} = require("../controllers/alertController");
 
 const router = express.Router();
 
-router.get(
-    "/",
-    protect,
-    getNotifications
-);
+
+// ==========================================
+// GET LOW STOCK PRODUCTS
+// ADMIN + STAFF
+// ==========================================
 
 router.get(
-    "/unread",
+    "/low-stock",
     protect,
-    getUnreadNotifications
+    authorize("admin", "staff"),
+    getLowStockProducts
 );
 
-router.put(
-    "/read-all",
+
+// ==========================================
+// GET OUT OF STOCK PRODUCTS
+// ADMIN + STAFF
+// ==========================================
+
+router.get(
+    "/out-of-stock",
     protect,
-    markAllNotificationsAsRead
+    authorize("admin", "staff"),
+    getOutOfStockProducts
 );
 
-router.put(
-    "/:id/read",
-    protect,
-    markNotificationAsRead
-);
-
-router.delete(
-    "/:id",
-    protect,
-    deleteNotification
-);
 
 module.exports = router;
